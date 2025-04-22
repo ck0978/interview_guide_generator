@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head> 
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>면접 전형 안내문 생성기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .안내문-제목 {
+            font-size: 2.25em;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .안내문-본문 {
+            font-size: 1rem;
+            line-height: 1.75rem;
+            color: #070707;
+        }
+        .안내문-강조 {
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .안내문-구분선 {
+            border-top-width: 1px;
+            border-color: #e5e7eb;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="container mx-auto bg-white rounded-lg shadow-md p-8 flex flex-col lg:flex-row gap-8">
+        <div class="w-full lg:w-1/2 space-y-6">
+            <h1 class="text-2xl font-semibold text-gray-800">면접 정보 입력</h1>
+            <div>
+                <label for="companyLogo" class="block text-sm font-medium text-gray-700">회사 로고</label>
+                <input type="file" id="companyLogo" accept="image/*" class="mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+            <div>
+                <label for="companyImage" class="block text-sm font-medium text-gray-700">회사 이미지 (선택 사항)</label>
+                <input type="file" id="companyImage" accept="image/*" class="mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+            <div>
+                <label for="applicantName" class="block text-sm font-medium text-gray-700">지원자 이름</label>
+                <input type="text" id="applicantName" class="mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm w-full">
+            </div>
+             <div>
+                <label for="teamName" class="block text-sm font-medium text-gray-700">지원팀</label>
+                <input type="text" id="teamName" class="mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm w-full">
+            </div>
+            <div>
+                <label for="interviewProcess" class="block text-sm font-medium text-gray-700">면접 절차</label>
+                <select id="interviewProcess" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    <option value="서류 합격">서류 합격</option>
+                    <option value="1차 면접">1차 면접</option>
+                    <option value="2차 면접">2차 면접</option>
+                    <option value="최종 합격">최종 합격</option>
+                    <option value="최종 불합격">최종 불합격</option>
+                </select>
+            </div>
+            <div>
+                <label for="interviewDate" class="block text-sm font-medium text-gray-700">면접 일자</label>
+                <input type="datetime-local" id="interviewDate" class="mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+            <div>
+                <label for="interviewLocation" class="block text-sm font-medium text-gray-700">면접 장소</label>
+                <input type="text" id="interviewLocation" class="mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm w-full">
+            </div>
+            <div>
+                <label for="interviewDressCode" class="block text-sm font-medium text-gray-700">면접 복장</label>
+                <input type="text" id="interviewDressCode" class="mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm w-full">
+            </div>
+            <div>
+                <label for="interviewProgress" class="block text-sm font-medium text-gray-700">면접 방식</label>
+                <input type="text" id="interviewProgress" class="mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm w-full">
+            </div>
+            <div>
+                <label for="additionalInfoType" class="block text-sm font-medium text-gray-700">추가 안내 사항 선택</label>
+                <select id="additionalInfoType" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    <option value="담당자 문의">담당자 문의</option>
+                    <option value="공장 담당자 문의">공장 담당자 문의</option>
+                </select>
+            </div>
+            <div>
+                <label for="contactEmail" class="block text-sm font-medium text-gray-700">담당자 이메일</label>
+                <input type="text" id="contactEmail" class="mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm w-full">
+            </div>
+            <div>
+                <label for="factoryContactInfo" class="block text-sm font-medium text-gray-700">공장 담당자 정보</label>
+                <input type="text" id="factoryContactInfo" class="mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm w-full">
+            </div>
+             <div>
+                <label for="additionalInfo" class="block text-sm font-medium text-gray-700">기타 사항</label>
+                <textarea id="additionalInfo" rows="4" class="mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm w-full"></textarea>
+            </div>
+            <button id="captureAndSave" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow-md focus:outline-none focus:shadow-outline">
+                안내문 캡처 및 저장
+            </button>
+        </div>
+
+        <div class="w-full lg:w-1/2">
+            <div id="previewArea" class="bg-white rounded-lg p-6 shadow-md border border-gray-200">
+                <div id="companyLogoPreview" class="flex justify-center mb-4">
+                    <img id="logoImage" src="#" alt="회사 로고" style="max-width: 150px; display: none;">
+                </div>
+                <div id="companyImagePreview" class="flex justify-center mb-4">
+                    <img id="mainImage" src="#" alt="회사 이미지" style="max-width: 100%; height: auto; display: none;">
+                </div>
+                <h2 class="안내문-제목 mb-4 text-center">면접 전형 안내</h2>
+                <p id="applicantNamePreview" class="안내문-본문 text-left mb-4"><span class="font-semibold text-lg"></span></p>
+                <div id="greeting" class="안내문-본문 mb-4"><span class="font-semibold text-lg"></span></div>
+                <div id="interviewDetails" class="space-y-2">
+                    <p class="안내문-본문"><span class="안내문-강조">📅 일시:</span> <span id="interviewDatePreview" class="font-semibold text-lg"></span></p>
+                    <p class="안내문-본문"><span class="안내문-강조">📍 장소:</span> <span id="interviewLocationPreview" class="font-semibold text-lg"></span></p>
+                    <p class="안내문-본문"><span class="안내문-강조">👔 복장:</span> <span id="interviewDressCodePreview" class="font-semibold text-lg"></span></p>
+                    <p class="안내문-본문"><span class="안내문-강조">🤵 방식:</span> <span id="interviewProgressPreview" class="font-semibold text-lg">미정</span></p>
+                </div>
+                <div class="안내문-구분선"></div>
+                <div id="additionalInfoPreview" class="안내문-본문 whitespace-pre-line mb-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    const companyLogoInput = document.getElementById('companyLogo');
+    const companyImageInput = document.getElementById('companyImage');
+    const applicantNameInput = document.getElementById('applicantName');
+    const teamNameInput = document.getElementById('teamName');
+    const interviewDateInput = document.getElementById('interviewDate');
+    const interviewLocationInput = document.getElementById('interviewLocation');
+    const interviewDressCodeInput = document.getElementById('interviewDressCode');
+    const interviewProcessInput = document.getElementById('interviewProcess');
+    const additionalInfoTypeInput = document.getElementById('additionalInfoType');
+    const contactEmailInput = document.getElementById('contactEmail');
+    const factoryContactInfoInput = document.getElementById('factoryContactInfo');
+    const additionalInfoInput = document.getElementById('additionalInfo');
+    const captureAndSaveButton = document.getElementById('captureAndSave');
+    const interviewProgressInput = document.getElementById('interviewProgress'); // 추가된 input
+
+    const logoImagePreview = document.getElementById('logoImage');
+    const mainImagePreview = document.getElementById('mainImage');
+    const greetingPreview = document.getElementById('greeting');
+    const applicantNamePreview = document.getElementById('applicantNamePreview');
+    const interviewDatePreview = document.getElementById('interviewDatePreview');
+    const interviewLocationPreview = document.getElementById('interviewLocationPreview');
+    const interviewDressCodePreview = document.getElementById('interviewDressCodePreview');
+    const interviewProgressPreview = document.getElementById('interviewProgressPreview'); // 추가된 preview
+    const additionalInfoPreview = document.getElementById('additionalInfoPreview');
+
+    const 안내문_제목 = "면접 전형 안내";
+
+    companyLogoInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                logoImagePreview.src = e.target.result;
+                logoImagePreview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            logoImagePreview.style.display = 'none';
+            logoImagePreview.src = '#';
+        }
+    });
+
+    companyImageInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                mainImagePreview.src = e.target.result;
+                mainImagePreview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            mainImagePreview.style.display = 'none';
+            mainImagePreview.src = '#';
+        }
+    });
+
+    function updatePreview() {
+        const applicantName = applicantNameInput.value;
+        const teamName = teamNameInput.value;
+        const interviewProcess = interviewProcessInput.value;
+        const additionalInfoType = additionalInfoTypeInput.value;
+        const contactEmail = contactEmailInput.value;
+        const factoryContactInfo = factoryContactInfoInput.value;
+        const interviewDate = interviewDateInput.value;
+        const interviewLocation = interviewLocationInput.value;
+        const interviewDressCode = interviewDressCodeInput.value;
+        const interviewProgress = interviewProgressInput.value; // 추가된 부분
+        const additionalInfoText = additionalInfoInput.value;
+        let greetingText = '';
+        let showDetails = true;
+        let additionalInfoContent = '';
+
+        switch (interviewProcess) {
+            case '서류 합격':
+                greetingText = `안녕하세요 이누스 주식회사 인사팀 채용담당 입니다.<br> ${teamName} 서류 합격을 진심으로 축하 드리며, 면접 전형 안내드립니다.`;
+                break;
+            case '1차 면접':
+                greetingText = `안녕하세요 이누스 주식회사 인사팀 채용담당 입니다.<br> ${teamName} 1차 면접 합격을 진심으로 축하 드리며, 면접 전형 안내드립니다.`;
+                break;
+            case '2차 면접':
+                greetingText = `안녕하세요 이누스 주식회사 인사팀 채용담당 입니다.<br> ${teamName} 2차 면접 합격을 진심으로 축하 드리며, 면접 전형 안내드립니다.`;
+                break;
+            case '최종 합격':
+                greetingText = `안녕하세요 이누스 주식회사 인사팀 채용담당 입니다.<br> ${teamName} 최종 합격을 진심으로 축하 드립니다.<br>
+                선발 과정을 통해 귀하의 경험과 자질이 우리 이누스의 발전 방향에 큰 기여를 할 것이라고 믿습니다.
+                <br><br>다음 단계로 인사팀에서 처우 및 입사일을 포함한 세부 사항 협의를 위해 연락 드릴 것입니다.`;
+                showDetails = false;
+                break;
+            case '최종 불합격':
+                greetingText = `안녕하세요 이누스 주식회사 인사팀 채용담당 입니다.<br> 이누스 ${teamName} 인재 영입에 관심을 갖고 지원해 주셔서 감사드립니다.
+                <br>안타깝게도 면접 심사에서 지원자님을 선발할 수 없게 되었음을 알려드립니다.<br><br>
+                이누스에 대한 관심과 지원에 깊은 감사를 드리며, 앞날에 무궁한 발전이 함께 하시기를 진심으로 기원드립니다.`;
+                showDetails = false;
+                break; // Added break statement here
+            default:
+                greetingText = "";
+        }
+
+        applicantNamePreview.innerHTML = `<span class="font-semibold text-lg">${applicantName}</span>님.`;
+        greetingPreview.innerHTML = `<span class="font-semibold text-lg">${greetingText}</span>`;
+
+        if (showDetails) {
+            interviewDatePreview.textContent = interviewDate ? new Date(interviewDate).toLocaleString() : '미정';
+            interviewLocationPreview.textContent = interviewLocation || '미정';
+            interviewDressCodePreview.textContent = interviewDressCode || '미정';
+            interviewProgressPreview.textContent = interviewProgress || '미정'; // 추가된 부분
+            document.getElementById('interviewDetails').style.display = 'block';
+        } else {
+            document.getElementById('interviewDetails').style.display = 'none';
+        }
+        additionalInfoContent = additionalInfoText;
+        if (additionalInfoType === "담당자 문의") {
+            additionalInfoContent = `${additionalInfoText}<br><br>기타 문의 사항은 ${contactEmail}으로 문의해 주시기 바랍니다.<br>감사합니다.<br><br>인사팀 채용 담당 드림<br><br>`;
+        } else if (additionalInfoType === "공장 담당자 문의") {
+            additionalInfoContent = `${additionalInfoText}<br><br>기타 문의 사항은 ${contactEmail}으로 문의해 주시기 바랍니다.<br>감사합니다.<br><br>공장 담당자 : ${factoryContactInfo}<br><br>`;
+        } else {
+            additionalInfoContent = additionalInfoText;
+        }
+
+        additionalInfoPreview.innerHTML = additionalInfoContent;
+    }
+
+    applicantNameInput.addEventListener('input', updatePreview);
+    teamNameInput.addEventListener('input', updatePreview);
+    interviewProcessInput.addEventListener('change', updatePreview); // Moved event listener
+    interviewDateInput.addEventListener('change', updatePreview);
+    interviewLocationInput.addEventListener('input', updatePreview);
+    interviewDressCodeInput.addEventListener('input', updatePreview);
+    interviewProgressInput.addEventListener('input', updatePreview); // 추가된 input에 대한 이벤트 리스너
+    additionalInfoTypeInput.addEventListener('change', updatePreview);
+    contactEmailInput.addEventListener('input', updatePreview);
+    factoryContactInfoInput.addEventListener('input', updatePreview);
+    additionalInfoInput.addEventListener('input', updatePreview);
+
+    captureAndSaveButton.addEventListener('click', () => {
+        html2canvas(document.getElementById('previewArea')).then(canvas => {
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png');
+            link.download = '면접안내문.png';
+            link.click();
+        });
+    });
+
+    updatePreview();
+    </script>
+</body>
+</html>
