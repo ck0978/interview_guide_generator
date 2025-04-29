@@ -1,25 +1,28 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head> 
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>면접 전형 안내문 생성기</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
+
     <style>
+        /* Custom styles */
         body {
             font-family: 'Inter', sans-serif;
+            /* body의 기본 배경색은 JS에서 동적으로 처리 */
         }
         .안내문-제목 {
-            font-size: 2.25em;
+            font-size: 1.8em;
             font-weight: 600;
             color: #1e293b;
         }
         .안내문-본문 {
-            font-size: 1rem;
+            font-size: 1.1rem;
             line-height: 1.75rem;
-            color: #070707;
+            color: #070707; /* 기본 텍스트 색상 */
         }
         .안내문-강조 {
             font-weight: 600;
@@ -31,104 +34,324 @@
             margin-top: 2rem;
             margin-bottom: 2rem;
         }
+        .blue-text {
+            color: #0000FF; /* 기존 파란색 텍스트 유지 */
+        }
+
+        /* 추가된 스타일 */
+        .form-section {
+            border-top: 1px solid #e5e7eb;
+            padding-top: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+         /* 간단한 텍스트 에디터 스타일 */
+        .text-editor {
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            min-height: 150px;
+            padding: 0.5rem 0.75rem;
+            outline: none;
+            background-color: #fff;
+            overflow-y: auto;
+            text-align: left; /* 기본 정렬 */
+        }
+         .editor-toolbar {
+            display: flex;
+            flex-wrap: wrap; /* 모바일에서 줄바꿈 */
+            gap: 0.5rem; /* 버튼 간 간격 */
+            margin-top: 0.25rem;
+            margin-bottom: 0.25rem;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            background-color: #f9fafb;
+        }
+         .editor-toolbar button, .editor-toolbar select, .editor-toolbar input[type="color"] { /* 색상 입력 필드 스타일 추가 */
+            padding: 0.25rem 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.25rem;
+            background-color: #f3f4f6;
+            cursor: pointer;
+            font-size: 0.875rem; /* 작은 폰트 */
+        }
+        .editor-toolbar button:hover, .editor-toolbar select:hover, .editor-toolbar input[type="color"]:hover { /* 색상 입력 필드 호버 스타일 추가 */
+            background-color: #e5e7eb;
+        }
+        .editor-toolbar select {
+             padding-right: 1.5rem; /* 드롭다운 화살표 공간 */
+             -webkit-appearance: none; /* 기본 화살표 제거 */
+             -moz-appearance: none;
+             appearance: none;
+             background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.362%22%20height%3D%22292.362%22%3E%3Cpath%20fill%3D%22%23000000%22%20d%3D%22M287.9%20139.8H4.5c-3.9%200-7.5%201.4-10.3%204.2-2.8%202.8-4.2%206.4-4.2%2010.3s1.4%207.5%204.2%2010.3l139.2%20139.2c2.8%202.8%206.4%204.2%2010.3%204.2s7.5-1.4%2010.3-4.2l139.2-139.2c2.8-2.8%204.2-6.4%204.2-10.3s-1.4-7.5-4.2-10.3z%22%2F%3E%3C%2Fsvg%3E');
+             background-repeat: no-repeat;
+             background-position: right 0.5rem center;
+             background-size: 0.6em auto;
+        }
+         /* 색상 입력 필드의 실제 색상 표시 영역 크기 조정 */
+        .editor-toolbar input[type="color"] {
+            width: 40px; /* 너비 조정 */
+            padding: 0.1rem; /* 내부 패딩 조정 */
+        }
+
+
+        /* Custom list style for preview area */
+        .apply-list-style {
+            list-style-type: disc;
+            padding-left: 1.5em; /* Adjust as needed for spacing */
+        }
+         .apply-list-style p { /* Apply list style to paragraphs within the list container */
+            display: list-item;
+            margin-bottom: 0.5em; /* Space between list items */
+        }
+
+         /* Tailwind alignment classes for preview area */
+        .text-left { text-align: left; }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+
+         /* Tailwind font size classes for preview area */
+        .text-sm { font-size: 0.875rem; }
+        .text-base { font-size: 1rem; }
+        .text-lg { font-size: 1.125rem; }
+        .text-xl { font-size: 1.25rem; }
+        .text-2xl { font-size: 1.5rem; }
+
+        /* 안내문 이미지 미리보기 크기 제한 */
+        #mainImage {
+            max-width: 100%; /* 부모 요소 너비에 맞춤 */
+            max-height: 500px; /* 최대 높이 유지 */
+            height: auto; /* 비율 유지 */
+            object-fit: contain; /* 이미지가 잘리지 않고 보이도록 */
+             margin-bottom: 1.5rem; /* 이미지 아래 간격 유지 */
+        }
+
+         /* 미리보기 영역 내 요소 간 간격 조정 */
+        #basicTemplate > div,
+        #basicTemplate > h2,
+        #basicTemplate > p,
+        #basicTemplate > .안내문-구분선 {
+            margin-bottom: 1rem; /* 기본 간격 */
+        }
+
+        #basicTemplate > .mb-4 { /* 기존 mb-4 클래스 유지 (필요시) */
+             margin-bottom: 1rem; /* mb-4를 1rem으로 통일 */
+        }
+
+        /* 캡처 컨테이너 스타일 - 세로 레이아웃을 위한 고정 너비 적용 */
+        #captureContainer {
+             position: absolute;
+             top: -9999px;
+             left: -9999px;
+             background-color: #ffffff;
+             padding: 20px; /* 패딩 유지 */
+             box-sizing: border-box;
+             /* 캡처 시 세로 레이아웃을 위해 너비를 고정 */
+             width: 600px; /* 원하는 세로 레이아웃 너비 (조정 가능) */
+             max-width: 100%;
+             /* border: 1px solid #a0a0a0; /* 테두리 제거 */
+             border-radius: 0.5rem; /* 테두리 모서리 둥글게 */
+        }
+
+        /* 메시지 표시 영역 스타일 */
+        #messageArea {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            min-height: 1.5rem; /* 최소 높이 설정 */
+        }
+        .message-success {
+            background-color: #d1fae5; /* green-100 */
+            color: #065f46; /* green-800 */
+            border: 1px solid #34d399; /* green-400 */
+        }
+        .message-error {
+            background-color: #fee2e2; /* red-100 */
+            color: #991b1b; /* red-800 */
+            border: 1px solid #f87171; /* red-400 */
+        }
+        .message-info {
+            background-color: #e0f2f7; /* cyan-100 */
+            color: #0e7490; /* cyan-800 */
+            border: 1px solid #22d3ee; /* cyan-400 */
+        }
+
+
+        /* 반응형 디자인을 위한 조정 */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                padding: 1rem; /* 모바일 패딩 감소 */
+            }
+            .w-full.lg\:w-1\/3, .w-full.lg\:w-2\/3 { /* 모바일에서는 전체 너비 사용 */
+                width: 100%;
+            }
+            .안내문-제목 {
+                font-size: 1.4em;
+            }
+            .안내문-본문 {
+                font-size: 1rem;
+                line-height: 1.5rem;
+            }
+             .p-6.sm\:p-8 { /* 미리보기 영역 패딩 조정 */
+                 padding: 1.5rem;
+             }
+             .space-y-4 > :not([hidden]) ~ :not([hidden]),
+             .space-y-6 > :not([hidden]) ~ :not([hidden]) { /* 세로 간격 조정 */
+                 margin-top: 1rem;
+             }
+             .gap-6.lg\:gap-8 { /* 가로 간격 조정 */
+                 gap: 1.5rem;
+             }
+             #mainImage {
+                 max-height: 450px; /* 모바일에서 이미지 최대 높이 유지 */
+                 margin-bottom: 1rem; /* 모바일 이미지 아래 간격 조정 */
+             }
+             #basicTemplate > div,
+             #basicTemplate > h2,
+             #basicTemplate > p,
+             #basicTemplate > .안내문-구분선 {
+                 margin-bottom: 0.75rem; /* 모바일 기본 간격 감소 */
+             }
+             #captureContainer {
+                 padding: 25px; /* 모바일 캡처 패딩 유지 */
+                 width: 100%; /* 모바일에서는 캡처 너비도 100%로 */
+             }
+        }
+
     </style>
 </head>
-<body class="bg-gray-100 p-8">
-    <div class="container mx-auto bg-white rounded-lg shadow-md p-8 flex flex-col lg:flex-row gap-8">
-        <div class="w-full lg:w-1/2 space-y-6">
-            <h1 class="text-2xl font-semibold text-gray-800">면접 정보 입력</h1>
-            <div>
-                <label for="companyLogo" class="block text-sm font-medium text-gray-700">회사 로고</label>
-                <input type="file" id="companyLogo" accept="image/*" class="mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+<body class="bg-gray-100 p-4 sm:p-8">
+    <div class="container mx-auto bg-white rounded-lg shadow-md p-6 sm:p-8 flex flex-col lg:flex-row gap-6 lg:gap-8">
+        <div class="w-full lg:w-1/3 space-y-6"> <h1 class="text-xl sm:text-2xl font-semibold text-gray-800 mb-6">면접 정보 입력</h1>
+
+            <div class="form-section space-y-4"> <h2 class="text-lg font-semibold text-gray-700">이미지 업로드</h2>
+                 <div>
+                     <label for="companyLogo" class="block text-sm font-medium text-gray-700 mb-1">회사 로고</label> <input type="file" id="companyLogo" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"> </div>
+                 <div>
+                     <label for="companyMainImage" class="block text-sm font-medium text-gray-700 mb-1">안내문 이미지 (선택 사항)</label> <input type="file" id="companyMainImage" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"> </div>
             </div>
-            <div>
-                <label for="companyImage" class="block text-sm font-medium text-gray-700">회사 이미지 (선택 사항)</label>
-                <input type="file" id="companyImage" accept="image/*" class="mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+
+            <div class="form-section space-y-4"> <h2 class="text-lg font-semibold text-gray-700">기본 정보</h2>
+                 <div class="flex flex-col sm:flex-row gap-4"> <div class="flex-1"> <label for="applicantName" class="block text-sm font-medium text-gray-700 mb-1">지원자 이름</label>
+                         <input type="text" id="applicantName" class="mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm w-full">
+                     </div>
+                     <div class="flex-1"> <label for="teamName" class="block text-sm font-medium text-gray-700 mb-1">지원팀</label>
+                         <input type="text" id="teamName" class="mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm w-full">
+                     </div>
+                 </div>
+                 <div>
+                     <label for="interviewProcess" class="block text-sm font-medium text-gray-700 mb-1">면접 절차</label> <select id="interviewProcess" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm">
+                         <option value="서류 합격">서류 합격 → 1차 면접</option>
+                         <option value="1차 면접">1차 면접 → 2차 면접</option>
+                         <option value="최종 합격">최종 합격</option>
+                         <option value="최종 불합격">최종 불합격</option>
+                     </select>
+                 </div>
             </div>
-            <div>
-                <label for="applicantName" class="block text-sm font-medium text-gray-700">지원자 이름</label>
-                <input type="text" id="applicantName" class="mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm w-full">
+
+            <div class="form-section space-y-4"> <h2 class="text-lg font-semibold text-gray-700">면접 상세</h2>
+                 <div> <label for="interviewDate" class="block text-sm font-medium text-gray-700 mb-1">면접 일시</label>
+                     <input type="datetime-local" id="interviewDate" class="mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm w-full">
+                 </div>
+                 <div> <label for="interviewLocation" class="block text-sm font-medium text-gray-700 mb-1">면접 장소</label>
+                     <input type="text" id="interviewLocation" class="mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm w-full">
+                 </div>
+                 <div> <label for="interviewDressCode" class="block text-sm font-medium text-gray-700 mb-1">면접 복장</label>
+                     <input type="text" id="interviewDressCode" class="mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm w-full">
+                 </div>
+                 <div> <label for="interviewProgress" class="block text-sm font-medium text-gray-700 mb-1">면접 방식</label>
+                     <input type="text" id="interviewProgress" class="mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm w-full">
+                 </div>
             </div>
-             <div>
-                <label for="teamName" class="block text-sm font-medium text-gray-700">지원팀</label>
-                <input type="text" id="teamName" class="mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm w-full">
+
+            <div class="form-section space-y-4"> <h2 class="text-lg font-semibold text-gray-700">추가 안내 및 기타 사항</h2>
+                 <div>
+                     <label for="additionalInfoType" class="block text-sm font-medium text-gray-700 mb-1">추가 안내 사항 선택</label> <select id="additionalInfoType" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm">
+                         <option value="담당자 문의">담당자 문의</option>
+                         <option value="공장 담당자 문의">공장 담당자 문의</option>
+                          <option value="없음">없음</option> </select>
+                 </div>
+                 <div class="flex flex-col sm:flex-row gap-4"> <div class="flex-1"> <label for="contactEmail" class="block text-sm font-medium text-gray-700 mb-1">담당자 이메일</label>
+                         <input type="text" id="contactEmail" class="mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm w-full">
+                     </div>
+                     <div class="flex-1"> <label for="factoryContactInfo" class="block text-sm font-medium text-gray-700 mb-1">공장 담당자 정보</label>
+                         <input type="text" id="factoryContactInfo" class="mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm w-full">
+                     </div>
+                 </div>
+
+                 <div>
+                     <label for="additionalInfo" class="block text-sm font-medium text-gray-700 mb-1">기타 사항</label> <div class="editor-toolbar mb-1"> <button type="button" onclick="formatText('bold')" title="Bold" class="hover:bg-gray-200 px-2 py-1 rounded"><b>B</b></button> <button type="button" onclick="formatText('italic')" title="Italic" class="hover:bg-gray-200 px-2 py-1 rounded"><i>I</i></button> <button type="button" onclick="formatText('underline')" title="Underline" class="hover:bg-gray-200 px-2 py-1 rounded"><u>U</u></button> <button type="button" onclick="formatText('justifyLeft')" title="Align Left" class="hover:bg-gray-200 px-2 py-1 rounded">Align Left</button> <button type="button" onclick="formatText('justifyCenter')" title="Align Center" class="hover:bg-gray-200 px-2 py-1 rounded">Align Center</button> <button type="button" onclick="formatText('justifyRight')" title="Align Right" class="hover:bg-gray-200 px-2 py-1 rounded">Align Right</button> <select onchange="formatText('fontSize', this.value); this.selectedIndex=0;" title="Font Size" class="hover:bg-gray-200 px-2 py-1 rounded text-sm"> <option value="" disabled selected>크기</option>
+                             <option value="1">8pt</option>
+                             <option value="2">10pt</option>
+                             <option value="3">12pt</option>
+                             <option value="4">14pt</option>
+                             <option value="5">18pt</option>
+                             <option value="6">24pt</option>
+                             <option value="7">36pt</option>
+                         </select>
+                         <input type="color" onchange="formatText('foreColor', this.value); this.value='#000000';" title="Text Color" class="hover:bg-gray-200 rounded"> </div>
+                     <div id="additionalInfoEditor" class="text-editor" contenteditable="true"></div> </div>
             </div>
-            <div>
-                <label for="interviewProcess" class="block text-sm font-medium text-gray-700">면접 절차</label>
-                <select id="interviewProcess" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    <option value="서류 합격">서류 합격</option>
-                    <option value="1차 면접">1차 면접</option>
-                    <option value="2차 면접">2차 면접</option>
-                    <option value="최종 합격">최종 합격</option>
-                    <option value="최종 불합격">최종 불합격</option>
-                </select>
+
+
+            <div class="form-section space-y-4"> <h2 class="text-lg font-semibold text-gray-700">데이터 관리</h2>
+                 <div class="flex flex-wrap gap-2"> <button id="saveDataButton" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition duration-150 ease-in-out"> 현재 데이터 저장
+                     </button>
+                     <button id="deleteDataButton" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition duration-150 ease-in-out"> 선택된 데이터 삭제
+                     </button>
+                 </div>
+                 <div>
+                     <label for="savedDataSelect" class="block text-sm font-medium text-gray-700 mb-1">저장된 데이터 불러오기</label> <select id="savedDataSelect" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-sm">
+                         <option value="">-- 저장된 데이터 선택 --</option>
+                     </select>
+                 </div>
+                 <div class="flex flex-wrap gap-2"> <button id="loadDataButton" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-150 ease-in-out flex-1 sm:flex-none"> 선택된 데이터 불러오기
+                     </button>
+                     <button id="resetFormButton" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 transition duration-150 ease-in-out flex-1 sm:flex-none"> 입력 초기화
+                     </button>
+                 </div>
             </div>
-            <div>
-                <label for="interviewDate" class="block text-sm font-medium text-gray-700">면접 일자</label>
-                <input type="datetime-local" id="interviewDate" class="mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-            </div>
-            <div>
-                <label for="interviewLocation" class="block text-sm font-medium text-gray-700">면접 장소</label>
-                <input type="text" id="interviewLocation" class="mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm w-full">
-            </div>
-            <div>
-                <label for="interviewDressCode" class="block text-sm font-medium text-gray-700">면접 복장</label>
-                <input type="text" id="interviewDressCode" class="mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm w-full">
-            </div>
-            <div>
-                <label for="interviewProgress" class="block text-sm font-medium text-gray-700">면접 방식</label>
-                <input type="text" id="interviewProgress" class="mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm w-full">
-            </div>
-            <div>
-                <label for="additionalInfoType" class="block text-sm font-medium text-gray-700">추가 안내 사항 선택</label>
-                <select id="additionalInfoType" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                    <option value="담당자 문의">담당자 문의</option>
-                    <option value="공장 담당자 문의">공장 담당자 문의</option>
-                </select>
-            </div>
-            <div>
-                <label for="contactEmail" class="block text-sm font-medium text-gray-700">담당자 이메일</label>
-                <input type="text" id="contactEmail" class="mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm w-full">
-            </div>
-            <div>
-                <label for="factoryContactInfo" class="block text-sm font-medium text-gray-700">공장 담당자 정보</label>
-                <input type="text" id="factoryContactInfo" class="mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm w-full">
-            </div>
-             <div>
-                <label for="additionalInfo" class="block text-sm font-medium text-gray-700">기타 사항</label>
-                <textarea id="additionalInfo" rows="4" class="mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm w-full"></textarea>
-            </div>
-            <button id="captureAndSave" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow-md focus:outline-none focus:shadow-outline">
-                안내문 캡처 및 저장
-            </button>
+
+             <div class="form-section"> <h2 class="text-lg font-semibold text-gray-700">캡처 및 저장</h2>
+                 <div class="mt-4"> <button id="captureAndSave" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-150 ease-in-out w-full text-lg"> 안내문 캡처 및 저장 (PNG)
+                     </button>
+                 </div>
+                 <div id="messageArea" class="mt-4"></div> </div>
+
         </div>
 
-        <div class="w-full lg:w-1/2">
-            <div id="previewArea" class="bg-white rounded-lg p-6 shadow-md border border-gray-200">
-                <div id="companyLogoPreview" class="flex justify-center mb-4">
-                    <img id="logoImage" src="#" alt="회사 로고" style="max-width: 150px; display: none;">
-                </div>
-                <div id="companyImagePreview" class="flex justify-center mb-4">
-                    <img id="mainImage" src="#" alt="회사 이미지" style="max-width: 100%; height: auto; display: none;">
-                </div>
-                <h2 class="안내문-제목 mb-4 text-center">면접 전형 안내</h2>
-                <p id="applicantNamePreview" class="안내문-본문 text-left mb-4"><span class="font-semibold text-lg"></span></p>
-                <div id="greeting" class="안내문-본문 mb-4"><span class="font-semibold text-lg"></span></div>
-                <div id="interviewDetails" class="space-y-2">
-                    <p class="안내문-본문"><span class="안내문-강조">📅 일시:</span> <span id="interviewDatePreview" class="font-semibold text-lg"></span></p>
-                    <p class="안내문-본문"><span class="안내문-강조">📍 장소:</span> <span id="interviewLocationPreview" class="font-semibold text-lg"></span></p>
-                    <p class="안내문-본문"><span class="안내문-강조">👔 복장:</span> <span id="interviewDressCodePreview" class="font-semibold text-lg"></span></p>
-                    <p class="안내문-본문"><span class="안내문-강조">🤵 방식:</span> <span id="interviewProgressPreview" class="font-semibold text-lg">미정</span></p>
-                </div>
-                <div class="안내문-구분선"></div>
-                <div id="additionalInfoPreview" class="안내문-본문 whitespace-pre-line mb-4"></div>
+        <div class="w-full lg:w-2\/3">
+            <div id="previewArea" class="bg-white rounded-lg shadow-md border border-gray-200 p-8 sm:p-10">
+                 <div id="basicTemplate">
+                     <div id="companyLogoPreview" class="flex justify-center mb-4">
+                         <img id="logoImage" src="#" alt="회사 로고" style="max-width: 150px; display: none;">
+                     </div>
+                     <div id="companyMainImagePreviewArea" class="flex justify-center mb-4">
+                          <img id="mainImage" src="#" alt="안내문 이미지" style="max-width: 100%; height: auto; display: none;">
+                     </div>
+                      <h2 id="annaemunTitle" class="안내문-제목 mb-4 text-center">면접 전형 안내</h2>
+                     <p id="applicantNamePreview" class="안내문-본문 text-left mb-4"><span class="font-semibold text-lg"></span>님.</p>
+                     <div id="greeting" class="안내문-본문 mb-4 text-gray-600"><span class="font-normal text-lg"></span></div>
+                     <div id="interviewDetails" class="space-y-2">
+                         <p class="안내문-본문"><span class="안내문-강조 blue-text">📅 일시:</span> <span id="interviewDatePreview" class="font-semibold text-lg"></span></p>
+                         <p class="안내문-본문"><span class="안내문-강조 blue-text">📍 장소:</span> <span id="interviewLocationPreview" class="font-semibold text-lg"></span></p>
+                         <p class="안내문-본문"><span class="안내문-강조 blue-text">👔 복장:</span> <span id="interviewDressCodePreview" class="font-semibold text-lg"></span></p>
+                         <p class="안내문-본문"><span class="안내문-강조 blue-text">🤵 방식:</span> <span id="interviewProgressPreview" class="font-semibold text-lg">미정</span></p>
+                     </div>
+                     <div class="안내문-구분선"></div>
+                     <div id="additionalInfoPreview" class="안내문-본문 whitespace-pre-line mb-4 text-gray-600"></div>
+                 </div>
+                 </div>
             </div>
         </div>
-    </div>
-
+    <div id="captureContainer" style="position: absolute; top: -9999px; left: -9999px; background-color: #ffffff; padding: 20px; box-sizing: border-box; width: 600px; max-width: 100%;">
+        </div>
     <script>
+    // Get references to DOM elements
     const companyLogoInput = document.getElementById('companyLogo');
-    const companyImageInput = document.getElementById('companyImage');
+    const companyMainImageInput = document.getElementById('companyMainImage'); // 안내문 이미지 입력 필드
     const applicantNameInput = document.getElementById('applicantName');
     const teamNameInput = document.getElementById('teamName');
     const interviewDateInput = document.getElementById('interviewDate');
@@ -138,53 +361,151 @@
     const additionalInfoTypeInput = document.getElementById('additionalInfoType');
     const contactEmailInput = document.getElementById('contactEmail');
     const factoryContactInfoInput = document.getElementById('factoryContactInfo');
-    const additionalInfoInput = document.getElementById('additionalInfo');
+    const additionalInfoEditor = document.getElementById('additionalInfoEditor'); // 텍스트 에디터 요소
     const captureAndSaveButton = document.getElementById('captureAndSave');
-    const interviewProgressInput = document.getElementById('interviewProgress'); // 추가된 input
+    const interviewProgressInput = document.getElementById('interviewProgress');
+    // const predefinedTextSelect = document.getElementById('predefinedTextSelect'); // 기본 문구 선택 드롭다운 (제거됨)
+    // const captureFormatSelect = document.getElementById('captureFormat'); // 캡처 형식 선택 드롭다운 (제거됨)
+    const resetFormButton = document.getElementById('resetFormButton'); // 초기화 버튼
 
+
+    const previewArea = document.getElementById('previewArea'); // 미리보기 영역 (화면에 보이는 부분)
+    const basicTemplateDiv = document.getElementById('basicTemplate'); // 기본 템플릿 div (미리보기 내용)
+    const captureContainer = document.getElementById('captureContainer'); // 캡처를 위한 임시 컨테이너
+    const messageArea = document.getElementById('messageArea'); // 메시지 표시 영역
+
+    // 미리보기 요소들 (basicTemplateDiv 내의 요소들)
+    const annaemunTitleElement = document.getElementById('annaemunTitle'); // 안내문 제목 요소
     const logoImagePreview = document.getElementById('logoImage');
-    const mainImagePreview = document.getElementById('mainImage');
+    const mainImagePreview = document.getElementById('mainImage'); // 안내문 이미지 미리보기
     const greetingPreview = document.getElementById('greeting');
     const applicantNamePreview = document.getElementById('applicantNamePreview');
     const interviewDatePreview = document.getElementById('interviewDatePreview');
     const interviewLocationPreview = document.getElementById('interviewLocationPreview');
     const interviewDressCodePreview = document.getElementById('interviewDressCodePreview');
-    const interviewProgressPreview = document.getElementById('interviewProgressPreview'); // 추가된 preview
+    const interviewProgressPreview = document.getElementById('interviewProgressPreview');
     const additionalInfoPreview = document.getElementById('additionalInfoPreview');
 
-    const 안내문_제목 = "면접 전형 안내";
+    const bodyElement = document.body; // body 요소 가져오기
 
-    companyLogoInput.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (file) {
+    // Save/Load elements
+    const saveDataButton = document.getElementById('saveDataButton');
+    const loadDataButton = document.getElementById('loadDataButton');
+    const deleteDataButton = document.getElementById('deleteDataButton');
+    const savedDataSelect = document.getElementById('savedDataSelect');
+
+    const LOCAL_STORAGE_KEY = 'interviewAnnaemunDataList'; // Key for localStorage (Use a different key for list)
+
+    // 기본 문구 데이터 정의 (사용되지 않지만, 혹시 모를 참조를 위해 남겨둠)
+    const predefinedTexts = {
+        prepare_docs: `면접 시 다음 서류를 지참해 주시기 바랍니다:
+• 최종 학력 증명서
+• 경력 증명서 (해당 시)
+• 자격증 사본 (해당 시)`,
+        parking_info: `주차 공간이 협소하오니 대중교통 이용을 권장합니다. 자가용 이용 시 인근 유료 주차장을 이용해 주시기 바랍니다.`,
+        contact_info: `기타 문의 사항은 [담당자 이메일] 또는 [담당자 연락처]로 문의해 주시기 바랍니다.`
+    };
+
+
+    // 메시지 표시 함수
+    function displayMessage(message, type = 'info') {
+        messageArea.textContent = message;
+        messageArea.className = `mt-4 message-${type}`; // Remove previous classes and add new ones
+         // Clear message after 5 seconds
+         setTimeout(() => {
+             messageArea.textContent = '';
+             messageArea.className = 'mt-4'; // Reset classes
+         }, 5000);
+    }
+
+
+    // 텍스트 에디터 기능
+    function formatText(command, value = null) {
+        // execCommand를 사용하여 텍스트 에디터의 선택 영역에 서식 적용
+        document.execCommand(command, false, value);
+        additionalInfoEditor.focus(); // 포커스 유지
+        // 미리보기 업데이트는 input 이벤트 리스너에서 처리
+    }
+
+     // 텍스트 에디터에 HTML 삽입 함수 (기본 문구 선택 제거로 인해 사용되지 않음)
+    /*
+    function insertHtmlAtCaret(html) {
+        const selection = window.getSelection();
+        if (selection && selection.rangeCount > 0) {
+            const range = selection.getRangeAt(0);
+            range.deleteContents(); // 현재 선택 영역 삭제
+            const el = document.createElement("div");
+            el.innerHTML = html;
+            let frag = document.createDocumentFragment(), node, lastNode;
+            while ( (node = el.firstChild) ) {
+                lastNode = frag.appendChild(node);
+            }
+            range.insertNode(frag);
+
+            // 삽입된 내용 뒤로 커서 이동
+            if (lastNode) {
+                range.setStartAfter(lastNode);
+                range.collapse(true);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+        } else {
+            // 선택 영역이 없으면 에디터 끝에 추가
+            additionalInfoEditor.innerHTML += html;
+        }
+        additionalInfoEditor.focus(); // 포커스 유지
+        updatePreview(); // 미리보기 업데이트
+    }
+    */
+
+
+    // 이미지 파일(File 객체)을 받아서 리사이즈된 Data URL을 반환하는 비동기 함수
+    function resizeImage(file, maxWidth, maxHeight, quality = 0.7) {
+        return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.onload = (e) => {
-                logoImagePreview.src = e.target.result;
-                logoImagePreview.style.display = 'block';
+            reader.onload = (readerEvent) => {
+                const img = new Image();
+                img.onload = () => {
+                    let width = img.width;
+                    let height = img.height;
+
+                    // 비율 유지하며 최대 크기 계산
+                    if (width > height) {
+                        if (width > maxWidth) {
+                            height *= maxWidth / width;
+                            width = maxWidth;
+                        }
+                    } else {
+                        if (height > maxHeight) {
+                            width *= maxHeight / height;
+                            height = maxHeight;
+                        }
+                    }
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Data URL로 변환 (JPEG 형식으로 압축)
+                    resolve(canvas.toDataURL('image/jpeg', quality));
+                };
+                img.onerror = (error) => {
+                    reject(error);
+                };
+                img.src = readerEvent.target.result;
+            };
+            reader.onerror = (error) => {
+                reject(error);
             };
             reader.readAsDataURL(file);
-        } else {
-            logoImagePreview.style.display = 'none';
-            logoImagePreview.src = '#';
-        }
-    });
+        });
+    }
 
-    companyImageInput.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                mainImagePreview.src = e.target.result;
-                mainImagePreview.style.display = 'block';
-            };
-            reader.readAsDataURL(file);
-        } else {
-            mainImagePreview.style.display = 'none';
-            mainImagePreview.src = '#';
-        }
-    });
 
-    function updatePreview() {
+    // 미리보기 업데이트 함수
+    async function updatePreview() { // 비동기 함수로 변경
         const applicantName = applicantNameInput.value;
         const teamName = teamNameInput.value;
         const interviewProcess = interviewProcessInput.value;
@@ -194,84 +515,622 @@
         const interviewDate = interviewDateInput.value;
         const interviewLocation = interviewLocationInput.value;
         const interviewDressCode = interviewDressCodeInput.value;
-        const interviewProgress = interviewProgressInput.value; // 추가된 부분
-        const additionalInfoText = additionalInfoInput.value;
+        const interviewProgress = interviewProgressInput.value;
+        let additionalInfoHtml = additionalInfoEditor.innerHTML; // 에디터의 HTML 내용 가져오기
+
         let greetingText = '';
         let showDetails = true;
-        let additionalInfoContent = '';
+        let annaemunTitle = '면접 전형 안내'; // 기본 제목
 
         switch (interviewProcess) {
             case '서류 합격':
-                greetingText = `안녕하세요 이누스 주식회사 인사팀 채용담당 입니다.<br> ${teamName} 서류 합격을 진심으로 축하 드리며, 면접 전형 안내드립니다.`;
+                greetingText = `안녕하세요.<br> ${teamName} 서류 합격을 진심으로 축하 드리며, 1차 면접 전형 안내드립니다.`;
+                annaemunTitle = '1차 면접 전형 안내'; // 제목 변경
                 break;
-            case '1차 면접':
-                greetingText = `안녕하세요 이누스 주식회사 인사팀 채용담당 입니다.<br> ${teamName} 1차 면접 합격을 진심으로 축하 드리며, 면접 전형 안내드립니다.`;
-                break;
-            case '2차 면접':
-                greetingText = `안녕하세요 이누스 주식회사 인사팀 채용담당 입니다.<br> ${teamName} 2차 면접 합격을 진심으로 축하 드리며, 면접 전형 안내드립니다.`;
+            case '1차 면접': // value는 그대로 '1차 면접' 사용
+                greetingText = `안녕하세요.<br> ${teamName} 1차 면접 합격을 진심으로 축하 드리며, 2차 면접 전형 안내드립니다.`;
+                annaemunTitle = '2차 면접 전형 안내'; // 제목 변경
                 break;
             case '최종 합격':
-                greetingText = `안녕하세요 이누스 주식회사 인사팀 채용담당 입니다.<br> ${teamName} 최종 합격을 진심으로 축하 드립니다.<br>
+                annaemunTitle = '최종 합격 을 진심으로 축하 드립니다! 🎉'; // 제목 변경 및 이모티콘 추가
+                greetingText = `안녕하세요. <br> ${teamName} 최종 합격을 진심으로 축하 드립니다.<br>
                 선발 과정을 통해 귀하의 경험과 자질이 우리 이누스의 발전 방향에 큰 기여를 할 것이라고 믿습니다.
-                <br><br>다음 단계로 인사팀에서 처우 및 입사일을 포함한 세부 사항 협의를 위해 연락 드릴 것입니다.`;
-                showDetails = false;
+                <br><br>다음 단계로 인사팀에서 처우 및 입사일 을 포함한 세부 사항 협의 를 위해 연락 드릴 것 입니다.`;
+                showDetails = false; // 면접 상세 정보 숨김
                 break;
             case '최종 불합격':
-                greetingText = `안녕하세요 이누스 주식회사 인사팀 채용담당 입니다.<br> 이누스 ${teamName} 인재 영입에 관심을 갖고 지원해 주셔서 감사드립니다.
+                 annaemunTitle = '이누스 인재 모집 지원에 감사 드립니다.'; // 제목 변경
+                greetingText = `안녕하세요.<br> 이누스 ${teamName} 인재 영입에 관심을 갖고 지원해 주셔서 감사드립니다.
                 <br>안타깝게도 면접 심사에서 지원자님을 선발할 수 없게 되었음을 알려드립니다.<br><br>
-                이누스에 대한 관심과 지원에 깊은 감사를 드리며, 앞날에 무궁한 발전이 함께 하시기를 진심으로 기원드립니다.`;
-                showDetails = false;
-                break; // Added break statement here
-            default:
+                이누스에 대한 관심과 지원에 깊은 감사를 드리며, 앞날에 무궁한 발전이 함께 하시기를 진심으로 진심으로 기원드립니다.`;
+                showDetails = false; // 면접 상세 정보 숨김
+                break;
+            default: // 2차 면접이 삭제되었으므로 default 처리에 포함될 수 있음
                 greetingText = "";
+                annaemunTitle = '면접 전형 안내'; // 기본 제목
         }
 
-        applicantNamePreview.innerHTML = `<span class="font-semibold text-lg">${applicantName}</span>님.`;
-        greetingPreview.innerHTML = `<span class="font-semibold text-lg">${greetingText}</span>`;
+        // 미리보기 요소들 업데이트
+        if (annaemunTitleElement) annaemunTitleElement.textContent = annaemunTitle; // 안내문 제목 업데이트
+        if (applicantNamePreview) applicantNamePreview.innerHTML = `<span class="font-semibold text-lg">${applicantName}</span>님.`;
+        // greetingPreview의 <span> 태그에서 font-semibold 클래스 제거
+        if (greetingPreview) greetingPreview.innerHTML = `<span class="font-normal text-lg">${greetingText}</span>`;
 
-        if (showDetails) {
-            interviewDatePreview.textContent = interviewDate ? new Date(interviewDate).toLocaleString() : '미정';
-            interviewLocationPreview.textContent = interviewLocation || '미정';
-            interviewDressCodePreview.textContent = interviewDressCode || '미정';
-            interviewProgressPreview.textContent = interviewProgress || '미정'; // 추가된 부분
-            document.getElementById('interviewDetails').style.display = 'block';
+        const interviewDetailsDiv = document.getElementById('interviewDetails'); // 기본 템플릿의 interviewDetails
+        if (interviewDetailsDiv) {
+            if (showDetails) {
+                interviewDetailsDiv.style.display = 'block';
+                if (interviewDatePreview) interviewDatePreview.textContent = interviewDate ? new Date(interviewDate).toLocaleString() : '미정';
+                if (interviewLocationPreview) interviewLocationPreview.textContent = interviewLocation || '미정';
+                if (interviewDressCodePreview) interviewDressCodePreview.textContent = interviewDressCode || '미정';
+                if (interviewProgressPreview) interviewProgressPreview.textContent = interviewProgress || '미정';
+            } else {
+                interviewDetailsDiv.style.display = 'none';
+            }
+        }
+
+        // --- URL 및 이메일 자동 링크 변환 기능 추가 ---
+        // 에디터에서 가져온 HTML 내용을 먼저 처리
+        let processedAdditionalInfoHtml = additionalInfoHtml;
+
+        // 1. URL 자동 변환 (http, https, www로 시작하는 경우)
+        // HTML 태그 내부의 URL은 제외하도록 정규식 개선
+        const urlRegex = /(?<!["'])((https?:\/\/\S+)|(www\.\S+))(?![>"'])/gi;
+        processedAdditionalInfoHtml = processedAdditionalInfoHtml.replace(urlRegex, (match, p1, p2, p3) => {
+            const url = p2 || p3; // capture group 2 (http/https) or 3 (www)
+            const href = p2 ? url : `http://${url}`; // www.로 시작하면 http:// 붙여줌
+            return `<a href="${href}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+        });
+
+        // 2. 이메일 주소 자동 변환
+        // HTML 태그 내부의 이메일은 제외하도록 정규식 개선
+        const emailRegex = /(?<!["'>\w])([A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,})(?!["'<\w])/gi;
+         processedAdditionalInfoHtml = processedAdditionalInfoHtml.replace(emailRegex, (match, email) => {
+            return `<a href="mailto:${email}">${email}</a>`;
+        });
+        // --- 자동 링크 변환 끝 ---
+
+
+        // additionalInfoPreview에 처리된 HTML 내용을 반영
+        additionalInfoPreview.innerHTML = processedAdditionalInfoHtml;
+
+
+        // 추가 안내 사항 타입에 따른 내용 추가 (처리된 에디터 내용 뒤에 붙도록 수정)
+        let appendedInfo = '';
+
+        // '최종 불합격' 시에는 추가 안내 사항 문구를 표시하지 않음
+        if (interviewProcess !== '최종 불합격') {
+            // '최종 합격' 시에는 '소중한 만남' 문구 제외, '기타 문의' 문구 포함
+            if (interviewProcess === '최종 합격') {
+                 if (additionalInfoType === "담당자 문의") {
+                    appendedInfo = `<br><br>기타 문의 사항은 ${contactEmail}으로 문의해 주시기 바랍니다.<br><br>감사합니다.<br><br>인사팀 채용 담당 드림`;
+                 } else if (additionalInfoType === "공장 담당자 문의") {
+                     appendedInfo = `<br><br>기타 문의 사항은 ${contactEmail}으로 문의해 주시기 바랍니다.<br><br>감사합니다.<br><br>공장 담당자 : ${factoryContactInfo}`;
+                 }
+            } else { // '서류 합격', '1차 면접' 등 면접 진행 상태일 때
+                if (additionalInfoType === "담당자 문의") {
+                    // 요청하신 문구 삽입 및 한 줄 띄우기 반영
+                    appendedInfo = `<br><br>기타 문의 사항은 ${contactEmail}으로 문의해 주시기 바랍니다.<br><br>${applicantName} 님과의 소중한 만남을 기대하며, 면접 준비 잘 하시어 좋은 결과 있으시기를 바랍니다.<br><br>감사합니다.<br><br>인사팀 채용 담당 드림`;
+                } else if (additionalInfoType === "공장 담당자 문의") {
+                     // 요청하신 문구 삽입 및 한 줄 띄우기 반영
+                    appendedInfo = `<br><br>기타 문의 사항은 ${contactEmail}으로 문의해 주시기 바랍니다.<br><br>${applicantName} 님과의 소중한 만남을 기대하며, 면접 준비 잘 하시어 좋은 결과 있으시기를 바랍니다.<br><br>감사합니다.<br><br>공장 담당자 : ${factoryContactInfo}`;
+                }
+            }
+        }
+
+
+         // 기타 사항(링크 변환 포함), 추가 안내 사항, 마지막 문구를 모두 포함하는 최종 HTML 구성
+         let fullAdditionalContent = processedAdditionalInfoHtml; // 이미 에디터 내용 + 링크 변환 결과가 들어있음
+         if (appendedInfo) {
+             // 기존 내용이 있고 추가 내용이 있으면 줄바꿈 추가
+             if (fullAdditionalContent) {
+                fullAdditionalContent += appendedInfo;
+             } else {
+                fullAdditionalContent = appendedInfo;
+             }
+         }
+
+         // 추가 문구 삽입 (최종 불합격 시에도 이 문구는 표시)
+         const finalSignature = `😄 함께하는 매 순간이 유쾌한 경험이 되는 곳, 더이누스`;
+         if (fullAdditionalContent) { // 기타 사항/추가 안내 사항 내용이 있을 경우에만 마지막 문구 앞에 줄바꿈 추가
+             fullAdditionalContent += `<br><br>${finalSignature}`;
+         } else { // 내용이 없으면 마지막 문구만
+             fullAdditionalContent = finalSignature;
+         }
+
+
+         // additionalInfoPreview에 최종 HTML 내용을 설정
+         // additionalInfoPreview div 자체에 text-gray-600 클래스가 있으므로 별도 래핑 불필요
+         additionalInfoPreview.innerHTML = fullAdditionalContent;
+
+
+        // 회사 로고 미리보기 업데이트 (리사이즈 없음)
+        const logoFile = companyLogoInput.files[0];
+        if (logoFile) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                logoImagePreview.src = e.target.result;
+                logoImagePreview.style.display = 'block';
+            };
+            reader.readAsDataURL(logoFile);
         } else {
-            document.getElementById('interviewDetails').style.display = 'none';
-        }
-        additionalInfoContent = additionalInfoText;
-        if (additionalInfoType === "담당자 문의") {
-            additionalInfoContent = `${additionalInfoText}<br><br>기타 문의 사항은 ${contactEmail}으로 문의해 주시기 바랍니다.<br>감사합니다.<br><br>인사팀 채용 담당 드림<br><br>`;
-        } else if (additionalInfoType === "공장 담당자 문의") {
-            additionalInfoContent = `${additionalInfoText}<br><br>기타 문의 사항은 ${contactEmail}으로 문의해 주시기 바랍니다.<br>감사합니다.<br><br>공장 담당자 : ${factoryContactInfo}<br><br>`;
-        } else {
-            additionalInfoContent = additionalInfoText;
+            logoImagePreview.style.display = 'none';
+            logoImagePreview.src = '#';
         }
 
-        additionalInfoPreview.innerHTML = additionalInfoContent;
+        // 안내문 이미지 미리보기 업데이트 (리사이즈 없음, CSS로 크기만 조절)
+        const mainImageFile = companyMainImageInput.files[0];
+        if (mainImageFile) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                mainImagePreview.src = e.target.result;
+                mainImagePreview.style.display = 'block';
+            };
+            reader.readAsDataURL(mainImageFile);
+        } else {
+            mainImagePreview.style.display = 'none';
+            mainImagePreview.src = '#';
+        }
     }
 
+
+    // 데이터 저장 함수 (목록 형태로 저장) - 이미지 리사이즈 로직 추가
+    async function saveData() { // 비동기 함수로 변경
+        try {
+            const savedData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
+
+            let resizedMainImageDataUrl = '';
+            const mainImageFile = companyMainImageInput.files[0];
+            if (mainImageFile) {
+                try {
+                    // 안내문 이미지 리사이즈 (예: 최대 너비/높이 800px, 품질 0.7)
+                    // 저장 시 리사이즈 크기를 미리보기/캡처 크기와 다르게 설정하여 용량 절감
+                    resizedMainImageDataUrl = await resizeImage(mainImageFile, 800, 800, 0.7);
+                    console.log('Main image resized successfully for saving.');
+                } catch (resizeError) {
+                    console.error('Image resize failed for saving:', resizeError);
+                    displayMessage('안내문 이미지 리사이즈에 실패했습니다. 원본 크기로 저장 시 용량 문제가 발생할 수 있습니다.', 'error');
+                    // 리사이즈 실패 시 원본 Data URL 사용 (용량 문제 발생 가능)
+                    const reader = new FileReader();
+                     reader.onload = (e) => {
+                         resizedMainImageDataUrl = e.target.result;
+                          proceedSave(savedData, resizedMainImageDataUrl);
+                     };
+                     reader.onerror = (e) => {
+                         console.error('Reading original image failed:', e);
+                         displayMessage('원본 이미지를 읽는 데 실패했습니다. 데이터 저장에 실패할 수 있습니다.', 'error');
+                         proceedSave(savedData, ''); // 이미지 없이 저장 시도
+                     };
+                     reader.readAsDataURL(mainImageFile);
+                     return; // 비동기 처리를 위해 여기서 함수 종료
+                }
+            }
+
+            // 리사이즈가 성공했거나 이미지가 없는 경우 저장 진행
+            proceedSave(savedData, resizedMainImageDataUrl);
+
+        } catch (e) {
+            // JSON 파싱 오류 등 초기 오류 처리
+            displayMessage('데이터 저장 준비 중 오류가 발생했습니다.', 'error');
+            console.error('Save data preparation error:', e);
+        }
+    }
+
+    // 실제 저장 로직을 담는 함수
+    function proceedSave(savedData, mainImageDataUrl) {
+         try {
+             const currentData = {
+                 applicantName: applicantNameInput.value,
+                 teamName: teamNameInput.value,
+                 interviewDate: interviewDateInput.value,
+                 interviewLocation: interviewLocationInput.value,
+                 interviewDressCode: interviewDressCodeInput.value,
+                 interviewProcess: interviewProcessInput.value,
+                 interviewProgress: interviewProgressInput.value,
+                 additionalInfoType: additionalInfoTypeInput.value,
+                 contactEmail: contactEmailInput.value,
+                 factoryContactInfo: factoryContactInfoInput.value,
+                 additionalInfoHtml: additionalInfoEditor.innerHTML, // 에디터 내용 저장
+                 companyLogoDataUrl: logoImagePreview.src === '#' ? '' : logoImagePreview.src, // 로고 Data URL 저장 (리사이즈 없음)
+                 companyMainImageDataUrl: mainImageDataUrl // 리사이즈된 안내문 이미지 Data URL 저장
+             };
+
+             // 데이터 크기 체크
+             const dataSize = JSON.stringify(currentData).length;
+             const maxStorageSize = 5 * 1024 * 1024; // 예: 5MB
+
+             if (dataSize > maxStorageSize) {
+                  displayMessage('저장하려는 데이터가 너무 큽니다. 이미지 크기를 더 줄이거나 데이터 양을 줄여주세요.', 'error');
+                  console.warn('Data size exceeds limit:', dataSize, 'bytes');
+                  return; // 저장하지 않음
+             }
+
+             savedData.push(currentData); // 배열에 현재 데이터 추가
+             localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(savedData));
+             displaySavedData(); // 저장 후 목록 업데이트
+             displayMessage('데이터가 성공적으로 저장되었습니다.', 'success');
+
+         } catch (e) {
+             // QuotaExceededError 등을 포함한 localStorage 오류 처리
+             if (e.name === 'QuotaExceededError') {
+                  displayMessage('데이터 저장 공간이 부족합니다. 기존 데이터를 삭제하거나 브라우저 설정을 확인해주세요.', 'error');
+             } else {
+                 displayMessage('데이터 저장 중 오류가 발생했습니다.', 'error');
+             }
+             console.error('Local storage save error:', e);
+         }
+    }
+
+
+    // 데이터 불러오기 함수 (목록에서 선택하여 불러오기)
+    function loadData() {
+        const selectedIndex = savedDataSelect.value;
+        if (selectedIndex === "" || selectedIndex === null) { // null 체크 추가
+            displayMessage("불러올 데이터를 선택해주세요.", 'info');
+            return;
+        }
+
+        try {
+            const savedData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
+            const data = savedData[parseInt(selectedIndex)]; // 선택된 인덱스의 데이터 가져오기
+
+            if (data) {
+                applicantNameInput.value = data.applicantName || '';
+                teamNameInput.value = data.teamName || '';
+                interviewDateInput.value = data.interviewDate || '';
+                interviewLocationInput.value = data.interviewLocation || '';
+                interviewDressCodeInput.value = data.interviewDressCode || '';
+                // 불러올 때 드롭다운 값 설정 시 텍스트가 아닌 value를 사용해야 함
+                // 저장된 데이터의 interviewProcess 값("서류 합격")은 그대로 사용
+                interviewProcessInput.value = data.interviewProcess || '서류 합격';
+                interviewProgressInput.value = data.interviewProgress || '';
+                additionalInfoTypeInput.value = data.additionalInfoType || '담당자 문의';
+                contactEmailInput.value = data.contactEmail || '';
+                factoryContactInfoInput.value = data.factoryContactInfo || '';
+                additionalInfoEditor.innerHTML = data.additionalInfoHtml || ''; // 에디터 내용 불러오기
+
+                // 로고 Data URL 불러오기
+                if (data.companyLogoDataUrl) {
+                    logoImagePreview.src = data.companyLogoDataUrl;
+                    logoImagePreview.style.display = 'block';
+                } else {
+                    logoImagePreview.style.display = 'none';
+                    logoImagePreview.src = '#';
+                }
+                // 안내문 이미지 Data URL 불러오기
+                 if (data.companyMainImageDataUrl) {
+                    mainImagePreview.src = data.companyMainImageDataUrl;
+                    mainImagePreview.style.display = 'block';
+                 } else {
+                    mainImagePreview.style.display = 'none';
+                    mainImagePreview.src = '#';
+                 }
+
+
+                updatePreview(); // 불러온 데이터로 미리보기 업데이트
+                displayMessage('데이터가 성공적으로 불러와졌습니다.', 'success');
+            } else {
+                displayMessage('선택된 데이터를 찾을 수 없습니다.', 'error');
+            }
+        } catch (e) {
+            displayMessage('데이터 불러오기 중 오류가 발생했습니다.', 'error');
+            console.error('Local storage load error:', e);
+        }
+    }
+
+    // 데이터 삭제 함수 (목록에서 선택하여 삭제)
+    function deleteData() {
+        const selectedIndex = savedDataSelect.value;
+        if (selectedIndex === "" || selectedIndex === null) { // null 체크 추가
+            displayMessage("삭제할 데이터를 선택해주세요.", 'info');
+            return;
+        }
+
+        if (confirm("선택된 데이터를 삭제하시겠습니까?")) {
+            try {
+                let savedData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
+                savedData.splice(parseInt(selectedIndex), 1); // 선택된 인덱스의 데이터 삭제
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(savedData));
+                displaySavedData(); // 삭제 후 목록 업데이트
+                clearForm(); // 폼 초기화
+                displayMessage('데이터가 성공적으로 삭제되었습니다.', 'success');
+            } catch (e) {
+                displayMessage('데이터 삭제 중 오류가 발생했습니다.', 'error');
+                console.error('Local storage delete error:', e);
+            }
+        }
+    }
+
+
+    // 저장된 데이터 목록을 드롭다운에 표시하는 함수
+    function displaySavedData() {
+        const savedData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
+        savedDataSelect.innerHTML = '<option value="">-- 저장된 데이터 선택 --</option>'; // 기존 옵션 초기화
+
+        if (savedData.length === 0) {
+             const option = document.createElement('option');
+             option.value = "";
+             option.textContent = "-- 저장된 데이터 없음 --";
+             savedDataSelect.appendChild(option);
+             loadDataButton.disabled = true; // 데이터 없으면 불러오기 버튼 비활성화
+             deleteDataButton.disabled = true; // 데이터 없으면 삭제 버튼 비활성화
+             return;
+        }
+
+        loadDataButton.disabled = false; // 데이터 있으면 버튼 활성화
+        deleteDataButton.disabled = false;
+
+
+        savedData.forEach((data, index) => {
+            const option = document.createElement('option');
+            option.value = index; // 배열 인덱스를 값으로 사용
+             // 데이터 레이블 생성 (순번. 이름 - 절차 (날짜))
+             // 드롭다운 목록 표시 시에는 저장된 value가 아닌 표시 텍스트를 가져와서 사용
+             // 현재 드롭다운 옵션에서 해당 value를 가진 option의 textContent를 찾음
+            const processOption = Array.from(interviewProcessInput.options).find(opt => opt.value === data.interviewProcess);
+            const processText = processOption ? processOption.textContent : data.interviewProcess || '절차 미정';
+
+            const label = `${index + 1}. ${data.applicantName || '이름 없음'} - ${processText} (${data.interviewDate ? new Date(data.interviewDate).toLocaleDateString() : '날짜 미정'})`;
+            option.textContent = label;
+            savedDataSelect.appendChild(option);
+        });
+    }
+
+     // 폼 입력 필드 및 에디터 내용을 초기화하는 함수
+    function clearForm() {
+        applicantNameInput.value = '';
+        teamNameInput.value = '';
+        interviewDateInput.value = '';
+        interviewLocationInput.value = '';
+        interviewDressCodeInput.value = '';
+        interviewProcessInput.value = '서류 합격'; // 초기값은 내부 value 사용
+        interviewProgressInput.value = '';
+        additionalInfoTypeInput.value = '담당자 문의';
+        contactEmailInput.value = '';
+        factoryContactInfoInput.value = '';
+        additionalInfoEditor.innerHTML = ''; // 에디터 내용 초기화
+
+        // 이미지 입력 필드 값 초기화 (미리보기만 초기화)
+        companyLogoInput.value = ''; // 파일 입력 필드 값 초기화
+        companyMainImageInput.value = ''; // 파일 입력 필드 값 초기화
+
+        // 이미지 미리보기 초기화
+        logoImagePreview.style.display = 'none';
+        logoImagePreview.src = '#';
+        mainImagePreview.style.display = 'none';
+        mainImagePreview.src = '#';
+
+
+        updatePreview(); // 미리보기 업데이트
+        displayMessage('입력 내용이 초기화되었습니다.', 'info'); // 초기화 메시지 추가
+    }
+
+
+    // 이벤트 리스너 연결
     applicantNameInput.addEventListener('input', updatePreview);
     teamNameInput.addEventListener('input', updatePreview);
-    interviewProcessInput.addEventListener('change', updatePreview); // Moved event listener
+    interviewProcessInput.addEventListener('change', updatePreview);
     interviewDateInput.addEventListener('change', updatePreview);
     interviewLocationInput.addEventListener('input', updatePreview);
     interviewDressCodeInput.addEventListener('input', updatePreview);
-    interviewProgressInput.addEventListener('input', updatePreview); // 추가된 input에 대한 이벤트 리스너
+    interviewProgressInput.addEventListener('input', updatePreview);
     additionalInfoTypeInput.addEventListener('change', updatePreview);
-    contactEmailInput.addEventListener('input', updatePreview);
-    factoryContactInfoInput.addEventListener('input', updatePreview);
-    additionalInfoInput.addEventListener('input', updatePreview);
+    contactEmailInput.addEventListener('input', updateContactInfo);
+    factoryContactInfoInput.addEventListener('input', updateContactInfo); // 담당자 정보 변경 시 기타 사항 업데이트
+    additionalInfoEditor.addEventListener('input', updatePreview); // 에디터 내용 변경 시 미리보기 업데이트
+    companyLogoInput.addEventListener('change', updatePreview); // 로고 이미지 변경 시 미리보기 업데이트
+    companyMainImageInput.addEventListener('change', updatePreview); // 안내문 이미지 변경 시 미리보기 업데이트
 
+
+    saveDataButton.addEventListener('click', saveData); // 저장 버튼
+    loadDataButton.addEventListener('click', loadData); // 불러오기 버튼
+    deleteDataButton.addEventListener('click', deleteData); // 삭제 버튼
+    resetFormButton.addEventListener('click', clearForm); // 초기화 버튼 이벤트 리스너 연결
+
+
+    // 캡처 및 저장 기능
     captureAndSaveButton.addEventListener('click', () => {
-        html2canvas(document.getElementById('previewArea')).then(canvas => {
-            const link = document.createElement('a');
-            link.href = canvas.toDataURL('image/png');
-            link.download = '면접안내문.png';
-            link.click();
-        });
+        const teamName = applicantNameInput.value ? teamNameInput.value : '미정';
+        const applicantName = applicantNameInput.value ? applicantNameInput.value : '지원자';
+        const interviewProcess = interviewProcessInput.value; // 내부 value 사용
+        // 파일명에 사용할 때는 드롭다운의 표시 텍스트를 가져와서 사용
+        const interviewProcessText = interviewProcessInput.options[interviewProcessInput.selectedIndex].text;
+
+        // 저장 형식은 PNG로 고정
+        const selectedFormat = 'png';
+        const fileExtension = 'png';
+
+        const fileName = `${teamName}_${applicantName}_${interviewProcessText}.${fileExtension}`;
+
+
+        // 캡처 대상 요소 (basicTemplateDiv)의 내용을 복제하여 임시 컨테이너에 삽입
+        const basicTemplateClone = basicTemplateDiv.cloneNode(true);
+        captureContainer.innerHTML = ''; // 임시 컨테이너 비우기
+        captureContainer.appendChild(basicTemplateClone); // 복제된 내용을 삽입
+
+        // *** 캡처 시 레이아웃 문제 해결: 인사말 요소 뒤에 <br><br> 태그 추가 ***
+        const clonedGreeting = captureContainer.querySelector('#greeting');
+        if(clonedGreeting) {
+            // 기존 내용 뒤에 <br><br> 태그를 추가합니다.
+            clonedGreeting.innerHTML += '<br><br>';
+        }
+        // *******************************************************
+
+
+        // 캡처 시 세로 레이아웃을 위해 임시 컨테이너 너비 고정
+        const originalWidth = captureContainer.style.width;
+        const originalHeight = captureContainer.style.height;
+        const originalPosition = captureContainer.style.position;
+        const originalTop = captureContainer.style.top;
+        const originalLeft = captureContainer.style.left;
+        const originalBorder = captureContainer.style.border;
+        const originalBorderRadius = captureContainer.style.borderRadius;
+
+        captureContainer.style.width = '600px'; // 세로 레이아웃을 위한 너비 (조정 가능)
+        captureContainer.style.height = 'auto'; // 높이는 내용에 따라 자동 조절
+        captureContainer.style.position = 'static'; // 캡처 시 임시적으로 위치를 보이게 설정
+        captureContainer.style.top = 'auto';
+        captureContainer.style.left = 'auto';
+        captureContainer.style.border = 'none'; // 캡처 시 테두리 제거
+        captureContainer.style.borderRadius = '0'; // 캡처 시 모서리 둥글기 제거
+        captureContainer.style.backgroundColor = '#ffffff'; // 배경색 강제 적용
+        captureContainer.style.padding = '20px'; // 패딩 유지
+        captureContainer.style.boxSizing = 'border-box';
+
+
+        // 이미지를 첨부하지 않았을 경우, 해당 이미지 요소를 임시 컨테이너에서 제거
+        if (!companyLogoInput.files[0]) {
+            const logoPreviewDiv = captureContainer.querySelector('#companyLogoPreview');
+            if (logoPreviewDiv) {
+                logoPreviewDiv.remove();
+            }
+        }
+        if (!companyMainImageInput.files[0]) {
+            const mainImagePreviewDiv = captureContainer.querySelector('#companyMainImagePreviewArea');
+            if (mainImagePreviewDiv) {
+                mainImagePreviewDiv.remove();
+            }
+        }
+
+        // 임시 컨테이너 내의 모든 이미지 요소 찾기 (새로 삽입된 내용 기준)
+        const images = captureContainer.querySelectorAll('img');
+        let imagesToLoad = images.length;
+
+        // 이미지가 없거나 이미 모두 로드된 경우 바로 캡처 실행
+        if (imagesToLoad === 0 || Array.from(images).every(img => img.complete)) {
+            console.log('All images loaded or no images found. Proceeding to capture.');
+            performCapture(captureContainer, fileName, selectedFormat)
+                .finally(() => { // 캡처 완료 또는 오류 발생 시 스타일 복원
+                    captureContainer.style.width = originalWidth;
+                    captureContainer.style.height = originalHeight;
+                    captureContainer.style.position = originalPosition;
+                    captureContainer.style.top = originalTop;
+                    captureContainer.style.left = originalLeft;
+                    captureContainer.style.border = originalBorder;
+                    captureContainer.style.borderRadius = originalBorderRadius;
+                    captureContainer.innerHTML = ''; // 임시 컨테이너 내용 비우기
+                });
+        } else {
+            console.log(`Waiting for ${imagesToLoad} images to load before capturing.`);
+            let loadedCount = 0;
+            // 이미지 로딩 대기
+            images.forEach(img => {
+                // 이미 로드 완료된 이미지는 카운트에서 제외
+                if (img.complete) {
+                     imagesToLoad--;
+                     console.log(`Image already complete. Remaining: ${imagesToLoad}`);
+                     if (imagesToLoad === 0) {
+                         console.log('All images loaded after check. Proceeding to capture.');
+                         performCapture(captureContainer, fileName, selectedFormat)
+                            .finally(() => { // 캡처 완료 또는 오류 발생 시 스타일 복원
+                                captureContainer.style.width = originalWidth;
+                                captureContainer.style.height = originalHeight;
+                                captureContainer.style.position = originalPosition;
+                                captureContainer.style.top = originalTop;
+                                captureContainer.style.left = originalLeft;
+                                captureContainer.style.border = originalBorder;
+                                captureContainer.style.borderRadius = originalBorderRadius;
+                                captureContainer.innerHTML = ''; // 임시 컨테이너 내용 비우기
+                            });
+                     }
+                } else {
+                    // 로드 또는 오류 발생 시 카운트 감소
+                    img.onload = () => {
+                        imagesToLoad--;
+                        console.log(`Image loaded. Remaining: ${imagesToLoad}`);
+                        if (imagesToLoad === 0) {
+                            console.log('All images loaded via event. Proceeding to capture.');
+                            performCapture(captureContainer, fileName, selectedFormat)
+                                .finally(() => { // 캡처 완료 또는 오류 발생 시 스타일 복원
+                                    captureContainer.style.width = originalWidth;
+                                    captureContainer.style.height = originalHeight;
+                                    captureContainer.style.position = originalPosition;
+                                    captureContainer.style.top = originalTop;
+                                    captureContainer.style.left = originalLeft;
+                                    captureContainer.style.border = originalBorder;
+                                    captureContainer.style.borderRadius = originalBorderRadius;
+                                    captureContainer.innerHTML = ''; // 임시 컨테이너 내용 비우기
+                                });
+                        }
+                    };
+                     img.onerror = () => {
+                        imagesToLoad--;
+                         console.error(`Image failed to load. Remaining: ${imagesToLoad}`);
+                         // 이미지 로드 실패 시에도 캡처 진행 (깨진 이미지로 캡처될 수 있음)
+                        if (imagesToLoad === 0) {
+                            console.log('Proceeding to capture despite image load error.');
+                            performCapture(captureContainer, fileName, selectedFormat)
+                                .finally(() => { // 캡처 완료 또는 오류 발생 시 스타일 복원
+                                    captureContainer.style.width = originalWidth;
+                                    captureContainer.style.height = originalHeight;
+                                    captureContainer.style.position = originalPosition;
+                                    captureContainer.style.top = originalTop;
+                                    captureContainer.style.left = originalLeft;
+                                    captureContainer.style.border = originalBorder;
+                                    captureContainer.style.borderRadius = originalBorderRadius;
+                                    captureContainer.innerHTML = ''; // 임시 컨테이너 내용 비우기
+                                });
+                        }
+                     };
+                }
+            });
+        }
     });
 
-    updatePreview();
+    // 캡처 실행 함수 (이제 임시 컨테이너를 대상으로 함) - 형식 인자 추가
+    function performCapture(elementToCapture, outputFileName, format = 'png') {
+         console.log(`Performing capture in ${format} format...`);
+         // 캡처 시작 메시지 표시
+         displayMessage(`안내문 캡처 중 (${format.toUpperCase()})...`, 'info');
+
+         // PNG/JPEG 캡처 (dom-to-image)
+         let capturePromise;
+         if (format === 'jpeg') {
+             // JPEG 형식은 품질 설정 가능 (0 ~ 1, 기본값은 0.92)
+             capturePromise = domtoimage.toJpeg(elementToCapture, {
+                 bgcolor: '#ffffff',
+                 quality: 0.9 // 품질 설정
+             });
+         } else { // 기본값은 png
+             capturePromise = domtoimage.toPng(elementToCapture, {
+                 bgcolor: '#ffffff'
+             });
+         }
+
+         return capturePromise // Promise를 반환하여 finally 체이닝 가능하도록 수정
+         .then(function (dataUrl) {
+             console.log('Capture successful. Generating download link.');
+
+             const link = document.createElement('a');
+             link.href = dataUrl;
+             link.download = outputFileName;
+             link.click();
+
+             // 성공 메시지 표시
+             displayMessage(`안내문이 성공적으로 캡처 및 저장되었습니다. (${format.toUpperCase()})`, 'success');
+
+         })
+         .catch(function (error) {
+             console.error('캡처 중 오류 발생:', error);
+             // 오류 메시지 표시
+             displayMessage(`안내문 캡처 중 오류가 발생했습니다. (${format.toUpperCase()}). 콘솔을 확인해주세요.`, 'error');
+             throw error; // 오류를 다시 throw하여 finally 블록이 실행되도록 함
+         });
+    }
+
+
+    // 페이지 로드 시 초기 데이터 목록 표시 및 미리보기 업데이트
+    displaySavedData();
+    updatePreview(); // Initial preview update
+
+    // 담당자 정보 입력 필드 변경 시 미리보기 업데이트 함수를 호출하도록 수정
+     function updateContactInfo() {
+         updatePreview();
+     }
+     contactEmailInput.addEventListener('input', updateContactInfo);
+     factoryContactInfoInput.addEventListener('input', updateContactInfo);
+
+
     </script>
 </body>
 </html>
